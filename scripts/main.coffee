@@ -9,6 +9,20 @@
 #   These are from the scripting documentation: https://github.com/github/hubot/blob/master/docs/scripting.md
 
 module.exports = (robot) ->
+  backLogApiKey = process.env.BACKLOG_API_KEY
+
+  robot.hear /hello/i, (msg) ->
+    name = msg.message.user.name
+    msg.send "hello! #{name}"
+
+  robot.respond /『(.*)』を登録$/, (msg) ->
+    title = msg.match[1]
+    msg.send "#{title}を登録しました。\n"
+
+  robot.respond /課題を確認$/, (msg) ->
+    msg.send "課題はこちら"
+    msg.send "課題１"
+
 
   # robot.hear /badger/i, (res) ->
   #   res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS"
