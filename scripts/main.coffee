@@ -8,6 +8,8 @@
 #
 #   These are from the scripting documentation: https://github.com/github/hubot/blob/master/docs/scripting.md
 
+cron = require('cron').CronJob
+
 module.exports = (robot) ->
   backLogApiKey = process.env.BACKLOG_API_KEY
 
@@ -23,6 +25,9 @@ module.exports = (robot) ->
     msg.send "課題はこちら"
     msg.send "課題１"
 
+  new cron '0 0 10 * * *', () =>
+    robot.send {room: "#general"}, "ほげ"
+  , null, true, "Asia/Tokyo"
 
   # robot.hear /badger/i, (res) ->
   #   res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS"
