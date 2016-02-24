@@ -25,9 +25,10 @@ module.exports = (robot) ->
     msg.send "課題はこちら"
     msg.send "課題１"
 
-  new cron '0 0 10 * * *', () =>
+  cronJob = new cron ('0 0 11 * * *', () =>
     robot.send {room: "#general"}, "ほげ"
-  , null, true, "Asia/Tokyo"
+  , null, true, "Asia/Tokyo")
+  cronJob.start()
 
   # robot.hear /badger/i, (res) ->
   #   res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS"
