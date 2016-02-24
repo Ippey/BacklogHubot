@@ -11,7 +11,9 @@
 cron = require('cron').CronJob
 
 module.exports = (robot) ->
-  backLogApiKey = process.env.BACKLOG_API_KEY
+  backlogApiKey = process.env.BACKLOG_API_KEY
+  backlogProjectId = process.env.BACKLOG_PROJECT_ID
+  backlogSubDomain = process.env.BACKLOG_SUB_DOMAIN
 
   robot.hear /hello/i, (msg) ->
     name = msg.message.user.name
@@ -19,16 +21,52 @@ module.exports = (robot) ->
 
   robot.respond /『(.*)』を登録$/, (msg) ->
     title = msg.match[1]
-    msg.send "#{title}を登録しました。\n"
+    url = "https://#{backlogSubDomain}.backlog.jp/api/v2/issues?apiKey=#{backlogApiKey}"
+    data = JSON.stringify {
+      projectId: backlogProjectId,
+      summary: title,
+      issueTypeId: "1",
+      priorityId: "3"
+    }
+    request = msg.http(url)
+      .header('Content-Type', 'application/json')
+      .post(data)
+    request (err, res, body) ->
+      json = JSON.parse body
+      issueKey = json.issueKey
+      link = "  https://megumilog.backlog.jp/view/#{issueKey}"
+      msg.send "登録しました。\n#{link}"
 
   robot.respond /課題を確認$/, (msg) ->
-    msg.send "課題はこちら"
-    msg.send "課題１"
+    getIssues(msg)
 
-  new cron '0 10 11 * * *', () =>
-    robot.send {room: "#random"}, "ほげ"
+
+  getIssues = (msg) ->
+    url = "https://#{backlogSubDomain}.backlog.jp/api/v2/issues?apiKey=#{backlogApiKey}"
+    if msg == null
+      request = robot.http(url)
+        .query("statusId[]": ["1", "2", "3"])
+        .get()
+    else
+      request = msg.http(url)
+        .query("statusId[]": ["1", "2", "3"])
+        .get()
+
+    request (err, res, body) ->
+      json = JSON.parse body
+      messages = []
+      for param in json
+        messages.push(param.summary)
+        link = "  https://megumilog.backlog.jp/view/#{param.issueKey}"
+        messages.push(link)
+
+      if msg == null
+        robot.send messages.join("\n")
+      else
+        msg.send messages.join("\n")
+
+  new cron '0 10 11 * * *', getIssues(null), "ほげ"
   , null, true, "Asia/Tokyo"
-  
 
   # robot.hear /badger/i, (res) ->
   #   res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS"
