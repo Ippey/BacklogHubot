@@ -38,7 +38,8 @@ module.exports = (robot) ->
       msg.send "登録しました。\n#{link}"
 
   robot.respond /課題を確認$/, (msg) ->
-    getIssues(msg)
+    messages = getIssues(msg)
+    msg.send messages.join("\n")
 
 
   getIssues = (msg) ->
@@ -59,13 +60,12 @@ module.exports = (robot) ->
         messages.push(param.summary)
         link = "  https://#{backlogSubDomain}.backlog.jp/view/#{param.issueKey}"
         messages.push(link)
+      return messages
 
-      if msg == null
-        robot.send messages.join("\n")
-      else
-        msg.send messages.join("\n")
-
-  new cron '0 10 11 * * *', getIssues(null), null, true, "Asia/Tokyo"
+  new cron '0 10 11 * * *', () =>
+    messages = getIssues(null)
+    robot.send messages.join("\n")
+  , null, true, "Asia/Tokyo"
 
   # robot.hear /badger/i, (res) ->
   #   res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS"
