@@ -53,14 +53,14 @@ module.exports = (robot) ->
         .query("statusId[]": ["1", "2", "3"])
         .get()
 
+    messages = []
     request (err, res, body) ->
       json = JSON.parse body
-      messages = []
       for param in json
         messages.push(param.summary)
         link = "  https://#{backlogSubDomain}.backlog.jp/view/#{param.issueKey}"
         messages.push(link)
-      return messages
+    return messages
 
   new cron '0 10 11 * * *', () =>
     messages = getIssues(null)
