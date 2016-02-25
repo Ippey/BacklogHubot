@@ -65,8 +65,7 @@ module.exports = (robot) ->
       else
         msg.send messages.join("\n")
 
-  new cron '0 10 11 * * *', getIssues(null), "ほげ"
-  , null, true, "Asia/Tokyo"
+  new cron '0 10 11 * * *', getIssues(null), null, true, "Asia/Tokyo"
 
   # robot.hear /badger/i, (res) ->
   #   res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS"
