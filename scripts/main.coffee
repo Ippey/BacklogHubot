@@ -34,7 +34,7 @@ module.exports = (robot) ->
     request (err, res, body) ->
       json = JSON.parse body
       issueKey = json.issueKey
-      link = "  https://megumilog.backlog.jp/view/#{issueKey}"
+      link = "  https://#{backlogSubDomain}.backlog.jp/view/#{issueKey}"
       msg.send "登録しました。\n#{link}"
 
   robot.respond /課題を確認$/, (msg) ->
@@ -57,7 +57,7 @@ module.exports = (robot) ->
       messages = []
       for param in json
         messages.push(param.summary)
-        link = "  https://megumilog.backlog.jp/view/#{param.issueKey}"
+        link = "  https://#{backlogSubDomain}.backlog.jp/view/#{param.issueKey}"
         messages.push(link)
 
       if msg == null
