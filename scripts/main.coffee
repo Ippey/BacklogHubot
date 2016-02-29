@@ -38,33 +38,36 @@ module.exports = (robot) ->
       msg.send "登録しました。\n#{link}"
 
   robot.respond /課題を確認$/, (msg) ->
-    messages = getIssues(msg)
-    msg.send messages.join("\n")
-
-
-  getIssues = (msg) ->
     url = "https://#{backlogSubDomain}.backlog.jp/api/v2/issues?apiKey=#{backlogApiKey}"
-    if msg == null
-      request = robot.http(url)
-        .query("statusId[]": ["1", "2", "3"])
-        .get()
-    else
-      request = msg.http(url)
-        .query("statusId[]": ["1", "2", "3"])
-        .get()
+    request = msg.http(url)
+      .query("statusId[]": ["1", "2", "3"])
+      .get()
 
-    messages = []
     request (err, res, body) ->
       json = JSON.parse body
+      messages = []
       for param in json
         messages.push(param.summary)
         link = "  https://#{backlogSubDomain}.backlog.jp/view/#{param.issueKey}"
         messages.push(link)
-    return messages
 
-  new cron '0 10 11 * * *', () =>
-    messages = getIssues(null)
-    robot.send messages.join("\n")
+      msg.send messages.join("\n")
+
+  new cron '0 0 10 * * 1-5', () =>
+    url = "https://#{backlogSubDomain}.backlog.jp/api/v2/issues?apiKey=#{backlogApiKey}"
+    request = robot.http(url)
+      .query("statusId[]": ["1", "2", "3"])
+      .get()
+
+    request (err, res, body) ->
+      json = JSON.parse body
+      messages = []
+      for param in json
+        messages.push(param.summary)
+        link = "  https://#{backlogSubDomain}.backlog.jp/view/#{param.issueKey}"
+        messages.push(link)
+
+      robot.send {room: "#general"}, messages.join("\n")
   , null, true, "Asia/Tokyo"
 
   # robot.hear /badger/i, (res) ->
