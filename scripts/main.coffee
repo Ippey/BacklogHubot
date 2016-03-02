@@ -9,19 +9,36 @@
 #   These are from the scripting documentation: https://github.com/github/hubot/blob/master/docs/scripting.md
 
 cron = require('cron').CronJob
+Backlog = require("./backlog")
+backlog = new Backlog()
 
 module.exports = (robot) ->
   backlogApiKey = process.env.BACKLOG_API_KEY
   backlogProjectId = process.env.BACKLOG_PROJECT_ID
   backlogSubDomain = process.env.BACKLOG_SUB_DOMAIN
+  backlogApiDomain = "https://#{backlogSubDomain}.backlog.jp"
+  backlogDomain = "https://#{backlogSubDomain}.backlog.jp"
 
   robot.hear /hello/i, (msg) ->
     name = msg.message.user.name
     msg.send "hello! #{name}"
 
+  robot.respond /担当者$/, (msg) ->
+    backlog.getUsers()
+    .then (messages) ->
+      msg.send messages.join("\n")
+
+  robot.respond /(.+)の課題$/, (msg) ->
+    name = msg.match[1]
+    backlog.getUser(name)
+    .then (result) ->
+      backlog.getIssues("statusId": ["1", "2", "3"], "assigneeId": [result])
+      .then (messages) ->
+        msg.send messages.join("\n")
+
   robot.respond /『(.*)』を登録$/, (msg) ->
     title = msg.match[1]
-    url = "https://#{backlogSubDomain}.backlog.jp/api/v2/issues?apiKey=#{backlogApiKey}"
+    url = "#{backlogApiDomain}/api/v2/issues?apiKey=#{backlogApiKey}"
     data = JSON.stringify {
       projectId: backlogProjectId,
       summary: title,
@@ -34,39 +51,17 @@ module.exports = (robot) ->
     request (err, res, body) ->
       json = JSON.parse body
       issueKey = json.issueKey
-      link = "  https://#{backlogSubDomain}.backlog.jp/view/#{issueKey}"
+      link = "  #{backlogDomain}/view/#{issueKey}"
       msg.send "登録しました。\n#{link}"
 
   robot.respond /課題を確認$/, (msg) ->
-    url = "https://#{backlogSubDomain}.backlog.jp/api/v2/issues?apiKey=#{backlogApiKey}"
-    request = msg.http(url)
-      .query("statusId[]": ["1", "2", "3"])
-      .get()
-
-    request (err, res, body) ->
-      json = JSON.parse body
-      messages = []
-      for param in json
-        messages.push(param.summary)
-        link = "  https://#{backlogSubDomain}.backlog.jp/view/#{param.issueKey}"
-        messages.push(link)
-
+    backlog.getIssues("statusId": ["1", "2", "3"])
+    .then (messages) ->
       msg.send messages.join("\n")
 
   new cron '0 0 10 * * 1-5', () =>
-    url = "https://#{backlogSubDomain}.backlog.jp/api/v2/issues?apiKey=#{backlogApiKey}"
-    request = robot.http(url)
-      .query("statusId[]": ["1", "2", "3"])
-      .get()
-
-    request (err, res, body) ->
-      json = JSON.parse body
-      messages = []
-      for param in json
-        messages.push(param.summary)
-        link = "  https://#{backlogSubDomain}.backlog.jp/view/#{param.issueKey}"
-        messages.push(link)
-
+    backlog.getIssues("statusId": ["1", "2", "3"])
+    .then (messages) ->
       robot.send {room: "#general"}, messages.join("\n")
   , null, true, "Asia/Tokyo"
 
