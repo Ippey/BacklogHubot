@@ -9,7 +9,7 @@
 #   These are from the scripting documentation: https://github.com/github/hubot/blob/master/docs/scripting.md
 
 cron = require('cron').CronJob
-Backlog = require("./backlog")
+Backlog = require "./backlog"
 backlog = new Backlog()
 request = require "request"
 
