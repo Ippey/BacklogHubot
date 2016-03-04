@@ -25,18 +25,9 @@ module.exports = (robot) ->
     msg.send "hello! #{name}"
 
   robot.respond /担当者$/, (msg) ->
-      url = "#{backlogApiDomain}/api/v2/users?apiKey=#{backlogApiKey}"
-      options =
-        url: url
-      request options, (err, res, body) ->
-        json = JSON.parse body
-        messages = []
-        for row in json
-          messages.push("#{row.id} : #{row.name}")
-        msg.send messages.join("\n")
-    # backlog.getUsers()
-    # .then (messages) ->
-    #   msg.send messages.join("\n")
+    backlog.getUsers()
+    .then (messages) ->
+      msg.send messages.join("\n")
 
   robot.respond /(.+)の課題$/, (msg) ->
     name = msg.match[1]
