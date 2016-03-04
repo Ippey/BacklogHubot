@@ -15,6 +15,7 @@ class Backlog
       options =
         url: url
       request options, (err, res, body) ->
+        console.log(body)
         json = JSON.parse body
         messages = []
         for row in json
